@@ -142,6 +142,180 @@
       font-weight: 800;
     }
 
+    .trend-section {
+      margin-top: 18px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      box-shadow: 0 14px 34px rgba(15, 23, 42, .08);
+    }
+
+    .trend-chart {
+      overflow-x: auto;
+      margin: 12px 0 16px;
+    }
+
+    .trend-chart svg {
+      display: block;
+      min-width: 620px;
+      width: 100%;
+      height: auto;
+    }
+
+    .trend-line {
+      fill: none;
+      stroke: var(--blue);
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .threshold {
+      stroke-width: 2;
+      stroke-dasharray: 6 6;
+    }
+
+    .threshold.warning {
+      stroke: rgba(183, 121, 31, .55);
+    }
+
+    .threshold.critical {
+      stroke: rgba(197, 48, 48, .55);
+    }
+
+    .trend-point {
+      fill: var(--green);
+      stroke: #ffffff;
+      stroke-width: 2;
+    }
+
+    .trend-point.warning {
+      fill: var(--yellow);
+    }
+
+    .trend-point.critical {
+      fill: var(--red);
+    }
+
+    .peak-point {
+      fill: var(--red);
+      stroke: #ffffff;
+      stroke-width: 2;
+    }
+
+    .latest-point {
+      fill: var(--blue);
+      stroke: #ffffff;
+      stroke-width: 2;
+    }
+
+    .axis-label,
+    .data-label {
+      fill: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .analysis-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 13px;
+      background: #fbfdff;
+    }
+
+    .analysis-card span {
+      display: block;
+      color: var(--blue);
+      font-size: .78rem;
+      font-weight: 850;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .analysis-card strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 1.05rem;
+    }
+
+    .analysis-card p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: .92rem;
+    }
+
+    .current-sar {
+      margin-top: 18px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      box-shadow: 0 14px 34px rgba(15, 23, 42, .08);
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: start;
+      margin-bottom: 12px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+    }
+
+    .section-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+    }
+
+    .command-pill {
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: #172033;
+      color: #dbeafe;
+      padding: 7px 10px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: .82rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .sample-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .sample-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px;
+      background: #fbfdff;
+    }
+
+    .sample-time {
+      display: block;
+      color: var(--muted);
+      font-size: .82rem;
+      font-weight: 800;
+    }
+
+    .sample-value {
+      display: block;
+      margin-top: 4px;
+      font-size: 1.18rem;
+      font-weight: 900;
+    }
+
     .table-wrap {
       margin-top: 18px;
       overflow-x: auto;
@@ -230,6 +404,23 @@
         gap: 8px;
       }
 
+      .section-head {
+        display: block;
+      }
+
+      .command-pill {
+        display: inline-flex;
+        margin-top: 8px;
+      }
+
+      .sample-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .analysis-grid {
+        grid-template-columns: 1fr;
+      }
+
       th,
       td {
         padding: 10px;
@@ -241,7 +432,7 @@
   <header>
     <div class="wrap">
       <h1>Host CPU Max Usage</h1>
-      <p class="subtitle">30-day maximum CPU usage generated from JSON data.</p>
+      <p class="subtitle">Current sar sample plus last 30 days of maximum CPU usage.</p>
     </div>
   </header>
 
@@ -264,8 +455,206 @@
       </article>
     </section>
 
+    <section class="current-sar" aria-label="Current sar output">
+      <div class="section-head">
+        <div>
+          <h2>Current sar -u 2 10 Output</h2>
+          <p>Host: local-mac | Date: 2026-05-30 | Current sample max: 24.2%</p>
+        </div>
+        <span class="command-pill">sar -u 2 10</span>
+      </div>
+      <div class="sample-grid">
+        <article class="sample-card">
+          <span class="sample-time">11:44:24 PM</span>
+          <span class="sample-value">19.3%</span>
+          <span class="status normal">Normal</span>
+        </article>
+        <article class="sample-card">
+          <span class="sample-time">11:44:26 PM</span>
+          <span class="sample-value">23.9%</span>
+          <span class="status normal">Normal</span>
+        </article>
+        <article class="sample-card">
+          <span class="sample-time">11:44:29 PM</span>
+          <span class="sample-value">21.8%</span>
+          <span class="status normal">Normal</span>
+        </article>
+        <article class="sample-card">
+          <span class="sample-time">11:44:31 PM</span>
+          <span class="sample-value">19.2%</span>
+          <span class="status normal">Normal</span>
+        </article>
+        <article class="sample-card">
+          <span class="sample-time">11:44:33 PM</span>
+          <span class="sample-value">18.7%</span>
+          <span class="status normal">Normal</span>
+        </article>
+        <article class="sample-card">
+          <span class="sample-time">11:44:36 PM</span>
+          <span class="sample-value">17.0%</span>
+          <span class="status normal">Normal</span>
+        </article>
+        <article class="sample-card">
+          <span class="sample-time">11:44:38 PM</span>
+          <span class="sample-value">24.2%</span>
+          <span class="status normal">Normal</span>
+        </article>
+        <article class="sample-card">
+          <span class="sample-time">11:44:40 PM</span>
+          <span class="sample-value">17.4%</span>
+          <span class="status normal">Normal</span>
+        </article>
+        <article class="sample-card">
+          <span class="sample-time">11:44:43 PM</span>
+          <span class="sample-value">18.3%</span>
+          <span class="status normal">Normal</span>
+        </article>
+        <article class="sample-card">
+          <span class="sample-time">11:44:45 PM</span>
+          <span class="sample-value">18.7%</span>
+          <span class="status normal">Normal</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="trend-section" aria-label="CPU trend and analysis">
+      <div class="section-head">
+        <div>
+          <h2>30-Day Trend Chart and Analysis</h2>
+          <p>Line chart and summary based on daily maximum CPU history.</p>
+        </div>
+      </div>
+      <div class="trend-chart">
+        <svg viewBox="0 0 700 220" role="img" aria-label="30-day CPU trend line chart">
+          <line x1="34" y1="39.2" x2="674" y2="39.2" class="threshold critical" />
+          <line x1="34" y1="54.4" x2="674" y2="54.4" class="threshold warning" />
+          <text x="4" y="43.2" class="axis-label">90%</text>
+          <text x="4" y="58.4" class="axis-label">80%</text>
+          <polyline points="34.0,81.2 56.1,72.5 78.1,67.3 100.2,92.1 122.3,54.7 144.3,49.4 166.4,62.6 188.5,69.8 210.6,41.6 232.6,37.4 254.7,77.7 276.8,88.0 298.8,65.0 320.9,58.2 343.0,52.0 365.0,43.9 387.1,74.5 409.2,85.9 431.2,66.4 453.3,30.5 475.4,40.0 497.4,59.9 519.5,68.7 541.6,48.0 563.7,34.9 585.7,57.4 607.8,73.4 629.9,78.9 651.9,50.3 674.0,43.6" class="trend-line" />
+          <circle cx="34.0" cy="81.2" r="3" class="trend-point normal">
+            <title>2026-05-01: 62.4%</title>
+          </circle>
+          <circle cx="56.1" cy="72.5" r="3" class="trend-point normal">
+            <title>2026-05-02: 68.1%</title>
+          </circle>
+          <circle cx="78.1" cy="67.3" r="3" class="trend-point normal">
+            <title>2026-05-03: 71.5%</title>
+          </circle>
+          <circle cx="100.2" cy="92.1" r="3" class="trend-point normal">
+            <title>2026-05-04: 55.2%</title>
+          </circle>
+          <circle cx="122.3" cy="54.7" r="3" class="trend-point normal">
+            <title>2026-05-05: 79.8%</title>
+          </circle>
+          <circle cx="144.3" cy="49.4" r="3" class="trend-point warning">
+            <title>2026-05-06: 83.3%</title>
+          </circle>
+          <circle cx="166.4" cy="62.6" r="3" class="trend-point normal">
+            <title>2026-05-07: 74.6%</title>
+          </circle>
+          <circle cx="188.5" cy="69.8" r="3" class="trend-point normal">
+            <title>2026-05-08: 69.9%</title>
+          </circle>
+          <circle cx="210.6" cy="41.6" r="3" class="trend-point warning">
+            <title>2026-05-09: 88.4%</title>
+          </circle>
+          <circle cx="232.6" cy="37.4" r="3" class="trend-point critical">
+            <title>2026-05-10: 91.2%</title>
+          </circle>
+          <circle cx="254.7" cy="77.7" r="3" class="trend-point normal">
+            <title>2026-05-11: 64.7%</title>
+          </circle>
+          <circle cx="276.8" cy="88.0" r="3" class="trend-point normal">
+            <title>2026-05-12: 57.9%</title>
+          </circle>
+          <circle cx="298.8" cy="65.0" r="3" class="trend-point normal">
+            <title>2026-05-13: 73.0%</title>
+          </circle>
+          <circle cx="320.9" cy="58.2" r="3" class="trend-point normal">
+            <title>2026-05-14: 77.5%</title>
+          </circle>
+          <circle cx="343.0" cy="52.0" r="3" class="trend-point warning">
+            <title>2026-05-15: 81.6%</title>
+          </circle>
+          <circle cx="365.0" cy="43.9" r="3" class="trend-point warning">
+            <title>2026-05-16: 86.9%</title>
+          </circle>
+          <circle cx="387.1" cy="74.5" r="3" class="trend-point normal">
+            <title>2026-05-17: 66.8%</title>
+          </circle>
+          <circle cx="409.2" cy="85.9" r="3" class="trend-point normal">
+            <title>2026-05-18: 59.3%</title>
+          </circle>
+          <circle cx="431.2" cy="66.4" r="3" class="trend-point normal">
+            <title>2026-05-19: 72.1%</title>
+          </circle>
+          <circle cx="453.3" cy="30.5" r="3" class="trend-point critical">
+            <title>2026-05-20: 95.7%</title>
+          </circle>
+          <circle cx="475.4" cy="40.0" r="3" class="trend-point warning">
+            <title>2026-05-21: 89.5%</title>
+          </circle>
+          <circle cx="497.4" cy="59.9" r="3" class="trend-point normal">
+            <title>2026-05-22: 76.4%</title>
+          </circle>
+          <circle cx="519.5" cy="68.7" r="3" class="trend-point normal">
+            <title>2026-05-23: 70.6%</title>
+          </circle>
+          <circle cx="541.6" cy="48.0" r="3" class="trend-point warning">
+            <title>2026-05-24: 84.2%</title>
+          </circle>
+          <circle cx="563.7" cy="34.9" r="3" class="trend-point critical">
+            <title>2026-05-25: 92.8%</title>
+          </circle>
+          <circle cx="585.7" cy="57.4" r="3" class="trend-point normal">
+            <title>2026-05-26: 78.0%</title>
+          </circle>
+          <circle cx="607.8" cy="73.4" r="3" class="trend-point normal">
+            <title>2026-05-27: 67.5%</title>
+          </circle>
+          <circle cx="629.9" cy="78.9" r="3" class="trend-point normal">
+            <title>2026-05-28: 63.9%</title>
+          </circle>
+          <circle cx="651.9" cy="50.3" r="3" class="trend-point warning">
+            <title>2026-05-29: 82.7%</title>
+          </circle>
+          <circle cx="674.0" cy="43.6" r="3" class="trend-point warning">
+            <title>2026-05-30: 87.1%</title>
+          </circle>
+          <circle cx="453.3" cy="30.5" r="6" class="peak-point" />
+          <text x="407.3" y="20.5" class="data-label">Peak 95.7%</text>
+          <circle cx="674.0" cy="43.6" r="5" class="latest-point" />
+          <text x="602.0" y="65.6" class="data-label">Latest 87.1%</text>
+          <text x="34" y="206" class="axis-label">2026-05-01</text>
+          <text x="596" y="206" class="axis-label">2026-05-30</text>
+        </svg>
+      </div>
+      <div class="analysis-grid">
+        <article class="analysis-card">
+          <span>Trend</span>
+          <strong>Increasing</strong>
+          <p>Recent 7-day average is 79.5% vs previous 7-day average 75.8% (+3.7%).</p>
+        </article>
+        <article class="analysis-card">
+          <span>Peak</span>
+          <strong>95.7%</strong>
+          <p>Highest daily max was on 2026-05-20.</p>
+        </article>
+        <article class="analysis-card">
+          <span>Thresholds</span>
+          <strong>3 critical / 8 warning</strong>
+          <p>Critical is 90% or higher. Warning is 80% to 89.9%.</p>
+        </article>
+        <article class="analysis-card">
+          <span>Latest</span>
+          <strong>87.1%</strong>
+          <p>Latest daily max is warning for 2026-05-30.</p>
+        </article>
+      </div>
+    </section>
+
     <section class="chart" aria-label="CPU usage bar chart">
-      <h2>Daily Max CPU Usage</h2>
+      <h2>Last 30 Days Max CPU Usage</h2>
         <div class="bar-row">
           <span class="bar-date">05-01</span>
           <div class="bar-track">

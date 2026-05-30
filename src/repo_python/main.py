@@ -25,6 +25,11 @@ def build_parser() -> argparse.ArgumentParser:
         default="data/history.json",
         help="CPU JSON input path. Default: data/history.json",
     )
+    generate.add_argument(
+        "--sample",
+        default="data/latest_cpu_sample.json",
+        help="Latest sar sample JSON path. Default: data/latest_cpu_sample.json",
+    )
 
     collect = subparsers.add_parser("collect-cpu", help="Run sar and update CPU history")
     collect.add_argument("--host", default="local", help="Host label. Default: local")
@@ -62,7 +67,7 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     if args.command == "generate-page":
-        output_path = write_html(args.output, args.data)
+        output_path = write_html(args.output, args.data, args.sample)
         print(f"Generated {output_path}")
         return
 
@@ -86,7 +91,7 @@ def main(argv: list[str] | None = None) -> None:
             f"daily max CPU is {collection.max_cpu:.1f}%"
         )
         if args.generate_page:
-            output_path = write_html("docs/index.html", args.history)
+            output_path = write_html("docs/index.html", args.history, args.sample)
             print(f"Generated {output_path}")
         return
 

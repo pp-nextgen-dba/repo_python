@@ -4,45 +4,45 @@
   "command": "sar -u 2 10",
   "samples": [
     {
-      "label": "11:34:23 PM",
-      "cpu_usage": 18.15
+      "label": "11:44:24 PM",
+      "cpu_usage": 19.28
     },
     {
-      "label": "11:34:26 PM",
-      "cpu_usage": 17.6
+      "label": "11:44:26 PM",
+      "cpu_usage": 23.9
     },
     {
-      "label": "11:34:28 PM",
-      "cpu_usage": 19.51
+      "label": "11:44:29 PM",
+      "cpu_usage": 21.8
     },
     {
-      "label": "11:34:30 PM",
-      "cpu_usage": 53.1
+      "label": "11:44:31 PM",
+      "cpu_usage": 19.21
     },
     {
-      "label": "11:34:33 PM",
-      "cpu_usage": 32.87
+      "label": "11:44:33 PM",
+      "cpu_usage": 18.71
     },
     {
-      "label": "11:34:35 PM",
-      "cpu_usage": 30.25
+      "label": "11:44:36 PM",
+      "cpu_usage": 17.03
     },
     {
-      "label": "11:34:38 PM",
-      "cpu_usage": 35.22
+      "label": "11:44:38 PM",
+      "cpu_usage": 24.24
     },
     {
-      "label": "11:34:40 PM",
-      "cpu_usage": 17.09
+      "label": "11:44:40 PM",
+      "cpu_usage": 17.4
     },
     {
-      "label": "11:34:42 PM",
-      "cpu_usage": 17.6
+      "label": "11:44:43 PM",
+      "cpu_usage": 18.28
     },
     {
-      "label": "11:34:45 PM",
-      "cpu_usage": 17.55
+      "label": "11:44:45 PM",
+      "cpu_usage": 18.69
     }
   ],
-  "max_cpu": 53.1
+  "max_cpu": 24.24
 }

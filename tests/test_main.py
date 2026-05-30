@@ -15,6 +15,8 @@ from repo_python.page_generator import (
     get_average_cpu,
     get_peak_record,
     get_status_class,
+    get_trend_summary,
+    load_current_cpu_sample,
     load_cpu_usage,
     write_html,
 )
@@ -44,6 +46,25 @@ class PageGeneratorTests(unittest.TestCase):
         self.assertIn("<title>My Test Page</title>", html)
         self.assertIn("<h1>My Test Page</h1>", html)
         self.assertIn("82.5%", html)
+        self.assertIn("Last 30 Days Max CPU Usage", html)
+        self.assertIn("30-Day Trend Chart and Analysis", html)
+
+    def test_load_current_cpu_sample_reads_json(self) -> None:
+        sample = load_current_cpu_sample("data/latest_cpu_sample.json")
+
+        self.assertIsNotNone(sample)
+        assert sample is not None
+        self.assertEqual(sample.command, "sar -u 2 10")
+        self.assertGreater(len(sample.samples), 0)
+
+    def test_build_html_contains_current_sar_output(self) -> None:
+        records = [CpuUsageRecord("2026-05-01", 82.5)]
+        sample = load_current_cpu_sample("data/latest_cpu_sample.json")
+
+        html = build_html(records, current_sample=sample)
+
+        self.assertIn("Current sar -u 2 10 Output", html)
+        self.assertIn("Current sample max", html)
 
     def test_peak_and_average_cpu(self) -> None:
         records = [
@@ -54,6 +75,18 @@ class PageGeneratorTests(unittest.TestCase):
 
         self.assertEqual(get_peak_record(records).max_cpu, 95.0)
         self.assertEqual(get_average_cpu(records), 75.0)
+
+    def test_trend_summary(self) -> None:
+        records = [
+            CpuUsageRecord(f"2026-05-{day:02d}", float(day))
+            for day in range(1, 15)
+        ]
+
+        summary = get_trend_summary(records)
+
+        self.assertEqual(summary["direction"], "Increasing")
+        self.assertEqual(summary["recent_average"], 11.0)
+        self.assertEqual(summary["previous_average"], 4.0)
 
     def test_status_class(self) -> None:
         self.assertEqual(get_status_class(70.0), "normal")
