@@ -17,10 +17,39 @@ Run the app:
 PYTHONPATH=src python -m repo_python
 ```
 
+Generate the HTML web page:
+
+```bash
+PYTHONPATH=src python -m repo_python generate-page
+```
+
+The generated page is written to:
+
+```text
+docs/index.html
+```
+
 Run tests:
 
 ```bash
 PYTHONPATH=src python -m unittest discover -s tests
+```
+
+## Publish With GitHub Pages
+
+After pushing this project to GitHub, enable GitHub Pages:
+
+1. Open the GitHub repository.
+2. Go to `Settings > Pages`.
+3. Set `Source` to `Deploy from a branch`.
+4. Select branch `main`.
+5. Select folder `/docs`.
+6. Save.
+
+Expected page URL:
+
+```text
+https://pp-nextgen-dba.github.io/repo_python/
 ```
 
 ## Daily Workflow
