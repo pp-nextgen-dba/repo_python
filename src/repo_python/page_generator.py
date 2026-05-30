@@ -214,6 +214,7 @@ def build_html(
     subtitle: str = "Current sar sample plus last 30 days of maximum CPU usage.",
     source_label: str = "data/history.json",
     current_sample: CurrentCpuCollection | None = None,
+    timezone_label: str = "Asia/Kuala_Lumpur",
 ) -> str:
     peak = get_peak_record(records)
     average = get_average_cpu(records)
@@ -242,7 +243,7 @@ def build_html(
         </div>"""
         for record in records
     )
-    current_markup = build_current_sample_markup(current_sample)
+    current_markup = build_current_sample_markup(current_sample, timezone_label)
     trend_markup = build_trend_chart_markup(records)
     analysis_markup = build_analysis_markup(records)
 
@@ -709,7 +710,7 @@ def build_html(
 
   <main class="wrap">
     <div class="range-banner">
-      30-day history date range: {escape(date_range)}
+      30-day history date range: {escape(date_range)} ({escape(timezone_label)})
       <span>Based on {len(records)} daily max CPU records from <code>{escape(source_label)}</code>.</span>
     </div>
 
@@ -721,7 +722,7 @@ def build_html(
       </article>
       <article class="card">
         <h2>30-Day Average</h2>
-        <p>{escape(date_range)}</p>
+        <p>{escape(date_range)} ({escape(timezone_label)})</p>
         <span class="metric">{average:.1f}%</span>
       </article>
       <article class="card">
@@ -737,7 +738,7 @@ def build_html(
       <div class="section-head">
         <div>
           <h2>30-Day Trend Chart and Analysis</h2>
-          <p>Line chart and summary for {escape(date_range)}.</p>
+          <p>Line chart and summary for {escape(date_range)} ({escape(timezone_label)}).</p>
         </div>
       </div>
 {trend_markup}
@@ -746,7 +747,7 @@ def build_html(
 
     <section class="chart" aria-label="CPU usage bar chart">
       <h2>Last 30 Days Max CPU Usage</h2>
-      <p class="section-subtitle">{escape(date_range)}</p>
+      <p class="section-subtitle">{escape(date_range)} ({escape(timezone_label)})</p>
 {bar_markup}
     </section>
 
@@ -764,7 +765,7 @@ def build_html(
       </table>
     </section>
 
-    <div class="note">Generated on {today} from <code>{escape(source_label)}</code>.</div>
+    <div class="note">Generated on {today} ({escape(timezone_label)}) from <code>{escape(source_label)}</code>.</div>
   </main>
 
   <footer class="wrap">
@@ -775,7 +776,10 @@ def build_html(
 """
 
 
-def build_current_sample_markup(current_sample: CurrentCpuCollection | None) -> str:
+def build_current_sample_markup(
+    current_sample: CurrentCpuCollection | None,
+    timezone_label: str = "Asia/Kuala_Lumpur",
+) -> str:
     if current_sample is None:
         return """    <section class="current-sar" aria-label="Current sar output">
       <div class="section-head">
@@ -799,7 +803,7 @@ def build_current_sample_markup(current_sample: CurrentCpuCollection | None) -> 
       <div class="section-head">
         <div>
           <h2>Current sar -u 2 10 Output</h2>
-          <p>Host: {escape(current_sample.host)} | Date: {escape(current_sample.collected_date)} | Current sample max: {current_sample.max_cpu:.1f}%</p>
+          <p>Host: {escape(current_sample.host)} | Date: {escape(current_sample.collected_date)} ({escape(timezone_label)}) | Current sample max: {current_sample.max_cpu:.1f}%</p>
         </div>
         <span class="command-pill">{escape(current_sample.command)}</span>
       </div>
@@ -813,13 +817,19 @@ def write_html(
     output_path: str | Path,
     data_path: str | Path = "data/history.json",
     sample_path: str | Path = "data/latest_cpu_sample.json",
+    timezone_label: str = "Asia/Kuala_Lumpur",
 ) -> Path:
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     records = load_cpu_usage(data_path)
     current_sample = load_current_cpu_sample(sample_path)
     path.write_text(
-        build_html(records, source_label=str(data_path), current_sample=current_sample),
+        build_html(
+            records,
+            source_label=str(data_path),
+            current_sample=current_sample,
+            timezone_label=timezone_label,
+        ),
         encoding="utf-8",
     )
     return path

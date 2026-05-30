@@ -30,6 +30,11 @@ def build_parser() -> argparse.ArgumentParser:
         default="data/latest_cpu_sample.json",
         help="Latest sar sample JSON path. Default: data/latest_cpu_sample.json",
     )
+    generate.add_argument(
+        "--timezone",
+        default="Asia/Kuala_Lumpur",
+        help="Timezone label to display on report dates. Default: Asia/Kuala_Lumpur",
+    )
 
     collect = subparsers.add_parser("collect-cpu", help="Run sar and update CPU history")
     collect.add_argument("--host", default="local", help="Host label. Default: local")
@@ -58,6 +63,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Regenerate docs/index.html after updating history.",
     )
+    collect.add_argument(
+        "--timezone",
+        default="Asia/Kuala_Lumpur",
+        help="Timezone label to display on report dates. Default: Asia/Kuala_Lumpur",
+    )
 
     return parser
 
@@ -67,7 +77,7 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     if args.command == "generate-page":
-        output_path = write_html(args.output, args.data, args.sample)
+        output_path = write_html(args.output, args.data, args.sample, args.timezone)
         print(f"Generated {output_path}")
         return
 
@@ -91,7 +101,7 @@ def main(argv: list[str] | None = None) -> None:
             f"daily max CPU is {collection.max_cpu:.1f}%"
         )
         if args.generate_page:
-            output_path = write_html("docs/index.html", args.history, args.sample)
+            output_path = write_html("docs/index.html", args.history, args.sample, args.timezone)
             print(f"Generated {output_path}")
         return
 

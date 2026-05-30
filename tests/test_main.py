@@ -49,7 +49,10 @@ class PageGeneratorTests(unittest.TestCase):
         self.assertIn("82.5%", html)
         self.assertIn("Last 30 Days Max CPU Usage", html)
         self.assertIn("30-Day Trend Chart and Analysis", html)
-        self.assertIn("30-day history date range: 2026-05-01 to 2026-05-01", html)
+        self.assertIn(
+            "30-day history date range: 2026-05-01 to 2026-05-01 (Asia/Kuala_Lumpur)",
+            html,
+        )
 
     def test_load_current_cpu_sample_reads_json(self) -> None:
         sample = load_current_cpu_sample("data/latest_cpu_sample.json")
@@ -67,6 +70,7 @@ class PageGeneratorTests(unittest.TestCase):
 
         self.assertIn("Current sar -u 2 10 Output", html)
         self.assertIn("Current sample max", html)
+        self.assertIn("Asia/Kuala_Lumpur", html)
 
     def test_peak_and_average_cpu(self) -> None:
         records = [
