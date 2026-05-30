@@ -13,6 +13,7 @@ from repo_python.page_generator import (
     CpuUsageRecord,
     build_html,
     get_average_cpu,
+    get_date_range_label,
     get_peak_record,
     get_status_class,
     get_trend_summary,
@@ -48,6 +49,7 @@ class PageGeneratorTests(unittest.TestCase):
         self.assertIn("82.5%", html)
         self.assertIn("Last 30 Days Max CPU Usage", html)
         self.assertIn("30-Day Trend Chart and Analysis", html)
+        self.assertIn("30-day history date range: 2026-05-01 to 2026-05-01", html)
 
     def test_load_current_cpu_sample_reads_json(self) -> None:
         sample = load_current_cpu_sample("data/latest_cpu_sample.json")
@@ -87,6 +89,14 @@ class PageGeneratorTests(unittest.TestCase):
         self.assertEqual(summary["direction"], "Increasing")
         self.assertEqual(summary["recent_average"], 11.0)
         self.assertEqual(summary["previous_average"], 4.0)
+
+    def test_date_range_label(self) -> None:
+        records = [
+            CpuUsageRecord("2026-05-01", 50.0),
+            CpuUsageRecord("2026-05-30", 80.0),
+        ]
+
+        self.assertEqual(get_date_range_label(records), "2026-05-01 to 2026-05-30")
 
     def test_status_class(self) -> None:
         self.assertEqual(get_status_class(70.0), "normal")

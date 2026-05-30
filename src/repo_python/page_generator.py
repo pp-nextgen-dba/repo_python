@@ -120,6 +120,12 @@ def get_trend_summary(records: list[CpuUsageRecord]) -> dict[str, float | int | 
     }
 
 
+def get_date_range_label(records: list[CpuUsageRecord]) -> str:
+    if not records:
+        return "No date range"
+    return f"{records[0].usage_date} to {records[-1].usage_date}"
+
+
 def build_trend_chart_markup(records: list[CpuUsageRecord]) -> str:
     if not records:
         return ""
@@ -212,6 +218,7 @@ def build_html(
     peak = get_peak_record(records)
     average = get_average_cpu(records)
     latest = records[-1]
+    date_range = get_date_range_label(records)
 
     row_markup = "\n".join(
         f"""          <tr>
@@ -306,6 +313,22 @@ def build_html(
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 16px;
+    }}
+
+    .range-banner {{
+      margin: 0 0 18px;
+      border-left: 5px solid var(--blue);
+      border-radius: 8px;
+      background: #eaf2ff;
+      padding: 14px 16px;
+      font-weight: 800;
+    }}
+
+    .range-banner span {{
+      display: block;
+      color: var(--muted);
+      font-size: .9rem;
+      font-weight: 700;
     }}
 
     .card {{
@@ -519,6 +542,12 @@ def build_html(
       color: var(--muted);
     }}
 
+    .section-subtitle {{
+      margin: -6px 0 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }}
+
     .command-pill {{
       flex: 0 0 auto;
       border-radius: 999px;
@@ -679,6 +708,11 @@ def build_html(
   </header>
 
   <main class="wrap">
+    <div class="range-banner">
+      30-day history date range: {escape(date_range)}
+      <span>Based on {len(records)} daily max CPU records from <code>{escape(source_label)}</code>.</span>
+    </div>
+
     <section class="summary-grid">
       <article class="card">
         <h2>Highest CPU</h2>
@@ -687,7 +721,7 @@ def build_html(
       </article>
       <article class="card">
         <h2>30-Day Average</h2>
-        <p>Average of daily maximum CPU values</p>
+        <p>{escape(date_range)}</p>
         <span class="metric">{average:.1f}%</span>
       </article>
       <article class="card">
@@ -703,7 +737,7 @@ def build_html(
       <div class="section-head">
         <div>
           <h2>30-Day Trend Chart and Analysis</h2>
-          <p>Line chart and summary based on daily maximum CPU history.</p>
+          <p>Line chart and summary for {escape(date_range)}.</p>
         </div>
       </div>
 {trend_markup}
@@ -712,6 +746,7 @@ def build_html(
 
     <section class="chart" aria-label="CPU usage bar chart">
       <h2>Last 30 Days Max CPU Usage</h2>
+      <p class="section-subtitle">{escape(date_range)}</p>
 {bar_markup}
     </section>
 
