@@ -3,6 +3,12 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from repo_python.main import greeting
+from repo_python.cpu_collector import (
+    collect_and_update_history,
+    collect_cpu_from_output,
+    parse_sar_cpu_output,
+    update_history,
+)
 from repo_python.page_generator import (
     CpuUsageRecord,
     build_html,
@@ -24,7 +30,7 @@ class GreetingTests(unittest.TestCase):
 
 class PageGeneratorTests(unittest.TestCase):
     def test_load_cpu_usage_reads_json(self) -> None:
-        records = load_cpu_usage("data/cpu_usage.json")
+        records = load_cpu_usage("data/history.json")
 
         self.assertEqual(len(records), 30)
         self.assertEqual(records[0].usage_date, "2026-05-01")
@@ -65,6 +71,62 @@ class PageGeneratorTests(unittest.TestCase):
             self.assertEqual(written_path, output_path)
             self.assertTrue(output_path.exists())
             self.assertIn("Host CPU Max Usage", output_path.read_text())
+
+
+class CpuCollectorTests(unittest.TestCase):
+    def test_parse_sar_cpu_output(self) -> None:
+        sar_output = Path("tests/fixtures/sar_u_sample.txt").read_text()
+
+        samples = parse_sar_cpu_output(sar_output)
+
+        self.assertEqual(len(samples), 5)
+        self.assertEqual(samples[0].cpu_usage, 17.85)
+        self.assertEqual(samples[2].cpu_usage, 56.6)
+
+    def test_collect_cpu_from_output_gets_max_cpu(self) -> None:
+        sar_output = Path("tests/fixtures/sar_u_sample.txt").read_text()
+
+        collection = collect_cpu_from_output(
+            sar_output,
+            host="local-test",
+            collected_date="2026-05-30",
+        )
+
+        self.assertEqual(collection.host, "local-test")
+        self.assertEqual(collection.collected_date, "2026-05-30")
+        self.assertEqual(collection.max_cpu, 56.6)
+
+    def test_update_history_keeps_daily_max(self) -> None:
+        with TemporaryDirectory() as temp_dir:
+            history_path = Path(temp_dir) / "history.json"
+            history_path.write_text('[{"date": "2026-05-30", "max_cpu": 40.0}]')
+            collection = collect_cpu_from_output(
+                Path("tests/fixtures/sar_u_sample.txt").read_text(),
+                collected_date="2026-05-30",
+            )
+
+            history = update_history(history_path, collection)
+
+            self.assertEqual(history, [{"date": "2026-05-30", "max_cpu": 56.6}])
+
+    def test_collect_and_update_history_writes_files(self) -> None:
+        with TemporaryDirectory() as temp_dir:
+            history_path = Path(temp_dir) / "history.json"
+            sample_path = Path(temp_dir) / "latest_cpu_sample.json"
+            sar_output = Path("tests/fixtures/sar_u_sample.txt").read_text()
+
+            collection = collect_and_update_history(
+                history_path=history_path,
+                sample_path=sample_path,
+                host="local-test",
+                sar_output=sar_output,
+                collected_date="2026-05-30",
+            )
+
+            self.assertEqual(collection.max_cpu, 56.6)
+            self.assertTrue(history_path.exists())
+            self.assertTrue(sample_path.exists())
+            self.assertIn("local-test", sample_path.read_text())
 
 
 if __name__ == "__main__":

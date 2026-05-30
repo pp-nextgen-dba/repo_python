@@ -51,6 +51,7 @@ def build_html(
     records: list[CpuUsageRecord],
     title: str = "Host CPU Max Usage",
     subtitle: str = "30-day maximum CPU usage generated from JSON data.",
+    source_label: str = "data/history.json",
 ) -> str:
     peak = get_peak_record(records)
     average = get_average_cpu(records)
@@ -365,7 +366,7 @@ def build_html(
       </table>
     </section>
 
-    <div class="note">Generated on {today} from <code>data/cpu_usage.json</code>.</div>
+    <div class="note">Generated on {today} from <code>{escape(source_label)}</code>.</div>
   </main>
 
   <footer class="wrap">
@@ -376,9 +377,9 @@ def build_html(
 """
 
 
-def write_html(output_path: str | Path, data_path: str | Path = "data/cpu_usage.json") -> Path:
+def write_html(output_path: str | Path, data_path: str | Path = "data/history.json") -> Path:
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     records = load_cpu_usage(data_path)
-    path.write_text(build_html(records), encoding="utf-8")
+    path.write_text(build_html(records, source_label=str(data_path)), encoding="utf-8")
     return path

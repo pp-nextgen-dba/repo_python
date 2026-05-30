@@ -17,7 +17,29 @@ Run the app:
 PYTHONPATH=src python -m repo_python
 ```
 
-Generate the HTML web page from the CPU JSON file:
+Collect CPU from the local host and update daily history:
+
+```bash
+PYTHONPATH=src python -m repo_python collect-cpu --host local --generate-page
+```
+
+This runs:
+
+```bash
+sar -u 2 10
+```
+
+For a test run without `sar`, use the included sample output:
+
+```bash
+PYTHONPATH=src python -m repo_python collect-cpu \
+  --host local-test \
+  --sar-output-file tests/fixtures/sar_u_sample.txt \
+  --date 2026-05-30 \
+  --generate-page
+```
+
+Generate the HTML web page from the CPU history file:
 
 ```bash
 PYTHONPATH=src python -m repo_python generate-page
@@ -26,7 +48,13 @@ PYTHONPATH=src python -m repo_python generate-page
 Input data:
 
 ```text
-data/cpu_usage.json
+data/history.json
+```
+
+Latest sample data:
+
+```text
+data/latest_cpu_sample.json
 ```
 
 The generated page is written to:

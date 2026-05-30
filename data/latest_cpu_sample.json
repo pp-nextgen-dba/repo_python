@@ -1,0 +1,28 @@
+{
+  "host": "local-test",
+  "collected_date": "2026-05-30",
+  "command": "sar -u 2 10",
+  "samples": [
+    {
+      "label": "10:00:03 AM",
+      "cpu_usage": 17.85
+    },
+    {
+      "label": "10:00:05 AM",
+      "cpu_usage": 30.2
+    },
+    {
+      "label": "10:00:07 AM",
+      "cpu_usage": 56.6
+    },
+    {
+      "label": "10:00:09 AM",
+      "cpu_usage": 40.45
+    },
+    {
+      "label": "10:00:11 AM",
+      "cpu_usage": 25.1
+    }
+  ],
+  "max_cpu": 56.6
+}
