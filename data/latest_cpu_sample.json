@@ -1,28 +1,48 @@
 {
-  "host": "local-test",
+  "host": "local-mac",
   "collected_date": "2026-05-30",
   "command": "sar -u 2 10",
   "samples": [
     {
-      "label": "10:00:03 AM",
-      "cpu_usage": 17.85
+      "label": "11:34:23 PM",
+      "cpu_usage": 18.15
     },
     {
-      "label": "10:00:05 AM",
-      "cpu_usage": 30.2
+      "label": "11:34:26 PM",
+      "cpu_usage": 17.6
     },
     {
-      "label": "10:00:07 AM",
-      "cpu_usage": 56.6
+      "label": "11:34:28 PM",
+      "cpu_usage": 19.51
     },
     {
-      "label": "10:00:09 AM",
-      "cpu_usage": 40.45
+      "label": "11:34:30 PM",
+      "cpu_usage": 53.1
     },
     {
-      "label": "10:00:11 AM",
-      "cpu_usage": 25.1
+      "label": "11:34:33 PM",
+      "cpu_usage": 32.87
+    },
+    {
+      "label": "11:34:35 PM",
+      "cpu_usage": 30.25
+    },
+    {
+      "label": "11:34:38 PM",
+      "cpu_usage": 35.22
+    },
+    {
+      "label": "11:34:40 PM",
+      "cpu_usage": 17.09
+    },
+    {
+      "label": "11:34:42 PM",
+      "cpu_usage": 17.6
+    },
+    {
+      "label": "11:34:45 PM",
+      "cpu_usage": 17.55
     }
   ],
-  "max_cpu": 56.6
+  "max_cpu": 53.1
 }

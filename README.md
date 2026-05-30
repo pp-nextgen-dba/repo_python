@@ -29,6 +29,18 @@ This runs:
 sar -u 2 10
 ```
 
+On Mac, Homebrew cannot install Linux `sysstat`. This repo includes a small compatible test command at:
+
+```text
+bin/sar
+```
+
+Use it by putting `bin` first in your PATH:
+
+```bash
+PATH="$PWD/bin:$PATH" PYTHONPATH=src python -m repo_python collect-cpu --host local-mac --generate-page
+```
+
 For a test run without `sar`, use the included sample output:
 
 ```bash
