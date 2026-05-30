@@ -17,10 +17,16 @@ Run the app:
 PYTHONPATH=src python -m repo_python
 ```
 
-Generate the HTML web page:
+Generate the HTML web page from the CPU JSON file:
 
 ```bash
 PYTHONPATH=src python -m repo_python generate-page
+```
+
+Input data:
+
+```text
+data/cpu_usage.json
 ```
 
 The generated page is written to:

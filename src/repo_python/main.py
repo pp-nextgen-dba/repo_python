@@ -19,6 +19,11 @@ def build_parser() -> argparse.ArgumentParser:
         default="docs/index.html",
         help="HTML output path. Default: docs/index.html",
     )
+    generate.add_argument(
+        "--data",
+        default="data/cpu_usage.json",
+        help="CPU JSON input path. Default: data/cpu_usage.json",
+    )
 
     return parser
 
@@ -28,7 +33,7 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     if args.command == "generate-page":
-        output_path = write_html(args.output)
+        output_path = write_html(args.output, args.data)
         print(f"Generated {output_path}")
         return
 

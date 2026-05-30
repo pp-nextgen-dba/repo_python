@@ -3,7 +3,15 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from repo_python.main import greeting
-from repo_python.page_generator import build_html, write_html
+from repo_python.page_generator import (
+    CpuUsageRecord,
+    build_html,
+    get_average_cpu,
+    get_peak_record,
+    get_status_class,
+    load_cpu_usage,
+    write_html,
+)
 
 
 class GreetingTests(unittest.TestCase):
@@ -15,21 +23,48 @@ class GreetingTests(unittest.TestCase):
 
 
 class PageGeneratorTests(unittest.TestCase):
+    def test_load_cpu_usage_reads_json(self) -> None:
+        records = load_cpu_usage("data/cpu_usage.json")
+
+        self.assertEqual(len(records), 30)
+        self.assertEqual(records[0].usage_date, "2026-05-01")
+        self.assertEqual(records[-1].usage_date, "2026-05-30")
+
     def test_build_html_contains_title(self) -> None:
-        html = build_html(title="My Test Page")
+        records = [CpuUsageRecord("2026-05-01", 82.5)]
+
+        html = build_html(records, title="My Test Page")
 
         self.assertIn("<title>My Test Page</title>", html)
         self.assertIn("<h1>My Test Page</h1>", html)
+        self.assertIn("82.5%", html)
+
+    def test_peak_and_average_cpu(self) -> None:
+        records = [
+            CpuUsageRecord("2026-05-01", 50.0),
+            CpuUsageRecord("2026-05-02", 95.0),
+            CpuUsageRecord("2026-05-03", 80.0),
+        ]
+
+        self.assertEqual(get_peak_record(records).max_cpu, 95.0)
+        self.assertEqual(get_average_cpu(records), 75.0)
+
+    def test_status_class(self) -> None:
+        self.assertEqual(get_status_class(70.0), "normal")
+        self.assertEqual(get_status_class(80.0), "warning")
+        self.assertEqual(get_status_class(90.0), "critical")
 
     def test_write_html_creates_file(self) -> None:
         with TemporaryDirectory() as temp_dir:
+            data_path = Path(temp_dir) / "cpu_usage.json"
             output_path = Path(temp_dir) / "docs" / "index.html"
+            data_path.write_text('[{"date": "2026-05-01", "max_cpu": 72.5}]')
 
-            written_path = write_html(output_path)
+            written_path = write_html(output_path, data_path)
 
             self.assertEqual(written_path, output_path)
             self.assertTrue(output_path.exists())
-            self.assertIn("Python Generated Web Page", output_path.read_text())
+            self.assertIn("Host CPU Max Usage", output_path.read_text())
 
 
 if __name__ == "__main__":
