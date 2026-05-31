@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Host CPU Max Usage</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --ink: #172033;
+      --muted: #5f6f89;
+      --panel: #ffffff;
+      --line: #d9e2ef;
+      --blue: #2563eb;
+      --green: #17803d;
+      --yellow: #b7791f;
+      --red: #c53030;
+      --soft-green: #ecfdf3;
+      --soft-yellow: #fffbeb;
+      --soft-red: #fff1f2;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.65;
+    }
+
+    header {
+      background: linear-gradient(135deg, #0f172a, #1d4ed8);
+      color: white;
+      padding: 56px 20px;
+    }
+
+    .wrap {
+      width: min(960px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 7vw, 4rem);
+      line-height: 1.05;
+    }
+
+    .subtitle {
+      max-width: 720px;
+      margin: 14px 0 0;
+      color: #dbeafe;
+      font-size: 1.1rem;
+    }
+
+    main {
+      padding: 28px 0 48px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .range-banner {
+      margin: 0 0 18px;
+      border-left: 5px solid var(--blue);
+      border-radius: 8px;
+      background: #eaf2ff;
+      padding: 14px 16px;
+      font-weight: 800;
+    }
+
+    .range-banner span {
+      display: block;
+      color: var(--muted);
+      font-size: .9rem;
+      font-weight: 700;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 14px 34px rgba(15, 23, 42, .08);
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 1.2rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .metric {
+      display: block;
+      margin-top: 8px;
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--ink);
+    }
+
+    .chart {
+      margin-top: 18px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      box-shadow: 0 14px 34px rgba(15, 23, 42, .08);
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 54px 1fr 64px;
+      gap: 10px;
+      align-items: center;
+      margin: 9px 0;
+      font-size: .92rem;
+    }
+
+    .bar-date {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .bar-track {
+      min-width: 0;
+      height: 13px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e5edf7;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--green);
+    }
+
+    .bar-fill.warning {
+      background: var(--yellow);
+    }
+
+    .bar-fill.critical {
+      background: var(--red);
+    }
+
+    .bar-value {
+      text-align: right;
+      font-weight: 800;
+    }
+
+    .trend-section {
+      margin-top: 18px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      box-shadow: 0 14px 34px rgba(15, 23, 42, .08);
+    }
+
+    .trend-chart {
+      overflow-x: auto;
+      margin: 12px 0 16px;
+    }
+
+    .trend-chart svg {
+      display: block;
+      min-width: 620px;
+      width: 100%;
+      height: auto;
+    }
+
+    .trend-line {
+      fill: none;
+      stroke: var(--blue);
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .threshold {
+      stroke-width: 2;
+      stroke-dasharray: 6 6;
+    }
+
+    .threshold.warning {
+      stroke: rgba(183, 121, 31, .55);
+    }
+
+    .threshold.critical {
+      stroke: rgba(197, 48, 48, .55);
+    }
+
+    .trend-point {
+      fill: var(--green);
+      stroke: #ffffff;
+      stroke-width: 2;
+    }
+
+    .trend-point.warning {
+      fill: var(--yellow);
+    }
+
+    .trend-point.critical {
+      fill: var(--red);
+    }
+
+    .peak-point {
+      fill: var(--red);
+      stroke: #ffffff;
+      stroke-width: 2;
+    }
+
+    .latest-point {
+      fill: var(--blue);
+      stroke: #ffffff;
+      stroke-width: 2;
+    }
+
+    .axis-label,
+    .data-label {
+      fill: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .analysis-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 13px;
+      background: #fbfdff;
+    }
+
+    .analysis-card span {
+      display: block;
+      color: var(--blue);
+      font-size: .78rem;
+      font-weight: 850;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .analysis-card strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 1.05rem;
+    }
+
+    .analysis-card p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: .92rem;
+    }
+
+    .current-sar {
+      margin-top: 18px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      box-shadow: 0 14px 34px rgba(15, 23, 42, .08);
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: start;
+      margin-bottom: 12px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+    }
+
+    .section-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+    }
+
+    .section-subtitle {
+      margin: -6px 0 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .command-pill {
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: #172033;
+      color: #dbeafe;
+      padding: 7px 10px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: .82rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .sample-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .sample-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px;
+      background: #fbfdff;
+    }
+
+    .sample-time {
+      display: block;
+      color: var(--muted);
+      font-size: .82rem;
+      font-weight: 800;
+    }
+
+    .sample-value {
+      display: block;
+      margin-top: 4px;
+      font-size: 1.18rem;
+      font-weight: 900;
+    }
+
+    .table-wrap {
+      margin-top: 18px;
+      overflow-x: auto;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 14px 34px rgba(15, 23, 42, .08);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+    }
+
+    th {
+      background: #eaf2ff;
+      font-size: .84rem;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .cpu-cell {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      font-weight: 800;
+    }
+
+    .status {
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: .78rem;
+      font-weight: 850;
+      background: var(--soft-green);
+      color: var(--green);
+    }
+
+    .status.warning {
+      background: var(--soft-yellow);
+      color: var(--yellow);
+    }
+
+    .status.critical {
+      background: var(--soft-red);
+      color: var(--red);
+    }
+
+    .note {
+      margin-top: 18px;
+      border-left: 5px solid var(--green);
+      background: #ecfdf3;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-weight: 700;
+    }
+
+    footer {
+      color: var(--muted);
+      padding: 0 0 36px;
+      text-align: center;
+    }
+
+    @media (max-width: 760px) {
+      header {
+        padding: 40px 18px;
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .bar-row {
+        grid-template-columns: 46px 1fr 56px;
+        gap: 8px;
+      }
+
+      .section-head {
+        display: block;
+      }
+
+      .command-pill {
+        display: inline-flex;
+        margin-top: 8px;
+      }
+
+      .sample-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .analysis-grid {
+        grid-template-columns: 1fr;
+      }
+
+      th,
+      td {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Host CPU Max Usage</h1>
+      <p class="subtitle">Current sar sample plus last 30 days of maximum CPU usage.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="range-banner">
+      30-day history date range: 2026-05-01 to 2026-05-30 (Asia/Kuala_Lumpur)
+      <span>Based on 30 daily max CPU records from <code>data/history.json</code>.</span>
+    </div>
+
+    <section class="summary-grid">
+      <article class="card">
+        <h2>Highest CPU</h2>
+        <p>2026-05-20</p>
+        <span class="metric">95.7%</span>
+      </article>
+      <article class="card">
+        <h2>30-Day Average</h2>
+        <p>2026-05-01 to 2026-05-30 (Asia/Kuala_Lumpur)</p>
+        <span class="metric">75.8%</span>
+      </article>
+      <article class="card">
+        <h2>Latest Day</h2>
+        <p>2026-05-30</p>
+        <span class="metric">87.1%</span>
+      </article>
+    </section>
+
+    <section class="current-sar" aria-label="Current sar output">
+      <div class="section-head">
+        <div>
+          <h2>Current sar -u 2 10 Output</h2>
+          <p>Host: local-mac | Date: 2026-05-30 (Asia/Kuala_Lumpur) | Current sample max: 35.8%</p>
+        </div>
+        <span class="command-pill">sar -u 2 10</span>
+      </div>
+      <div class="sample-grid">
+        <article class="sample-card">
+          <span class="sample-time">11:50:39 PM</span>
+          <span class="sample-value">19.1%</span>
+          <span class="status normal">Normal</span>
+        </article>
+        <article class="sample-card">
+          <span class="sample-time">11:50:42 PM</span>
+          <span class="sample-value">17.9%</span>
+          <span class="status normal">Normal</span>
+        </article>
+        <article class="sample-card">
+          <span class="sample-time">11:50:44 PM</span>
+          <span class="sample-value">18.2%</span>
+          <span class="status normal">Normal</span>
+        </article>
+        <article class="sample-card">
+          <span class="sample-time">11:50:47 PM</span>
+          <span class="sample-value">18.5%</span>
+          <span class="status normal">Normal</span>
+        </article>
+        <article class="sample-card">
+          <span class="sample-time">11:50:49 PM</span>
+          <span class="sample-value">17.3%</span>
+          <span class="status normal">Normal</span>
+        </article>
+        <article class="sample-card">
+          <span class="sample-time">11:50:51 PM</span>
+          <span class="sample-value">20.2%</span>
+          <span class="status normal">Normal</span>
+        </article>
+        <article class="sample-card">
+          <span class="sample-time">11:50:54 PM</span>
+          <span class="sample-value">18.3%</span>
+          <span class="status normal">Normal</span>
+        </article>
+        <article class="sample-card">
+          <span class="sample-time">11:50:56 PM</span>
+          <span class="sample-value">25.7%</span>
+          <span class="status normal">Normal</span>
+        </article>
+        <article class="sample-card">
+          <span class="sample-time">11:50:59 PM</span>
+          <span class="sample-value">35.8%</span>
+          <span class="status normal">Normal</span>
+        </article>
+        <article class="sample-card">
+          <span class="sample-time">11:51:01 PM</span>
+          <span class="sample-value">17.4%</span>
+          <span class="status normal">Normal</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="trend-section" aria-label="CPU trend and analysis">
+      <div class="section-head">
+        <div>
+          <h2>30-Day Trend Chart and Analysis</h2>
+          <p>Line chart and summary for 2026-05-01 to 2026-05-30 (Asia/Kuala_Lumpur).</p>
+        </div>
+      </div>
+      <div class="trend-chart">
+        <svg viewBox="0 0 700 220" role="img" aria-label="30-day CPU trend line chart">
+          <line x1="34" y1="39.2" x2="674" y2="39.2" class="threshold critical" />
+          <line x1="34" y1="54.4" x2="674" y2="54.4" class="threshold warning" />
+          <text x="4" y="43.2" class="axis-label">90%</text>
+          <text x="4" y="58.4" class="axis-label">80%</text>
+          <polyline points="34.0,81.2 56.1,72.5 78.1,67.3 100.2,92.1 122.3,54.7 144.3,49.4 166.4,62.6 188.5,69.8 210.6,41.6 232.6,37.4 254.7,77.7 276.8,88.0 298.8,65.0 320.9,58.2 343.0,52.0 365.0,43.9 387.1,74.5 409.2,85.9 431.2,66.4 453.3,30.5 475.4,40.0 497.4,59.9 519.5,68.7 541.6,48.0 563.7,34.9 585.7,57.4 607.8,73.4 629.9,78.9 651.9,50.3 674.0,43.6" class="trend-line" />
+          <circle cx="34.0" cy="81.2" r="3" class="trend-point normal">
+            <title>2026-05-01: 62.4%</title>
+          </circle>
+          <circle cx="56.1" cy="72.5" r="3" class="trend-point normal">
+            <title>2026-05-02: 68.1%</title>
+          </circle>
+          <circle cx="78.1" cy="67.3" r="3" class="trend-point normal">
+            <title>2026-05-03: 71.5%</title>
+          </circle>
+          <circle cx="100.2" cy="92.1" r="3" class="trend-point normal">
+            <title>2026-05-04: 55.2%</title>
+          </circle>
+          <circle cx="122.3" cy="54.7" r="3" class="trend-point normal">
+            <title>2026-05-05: 79.8%</title>
+          </circle>
+          <circle cx="144.3" cy="49.4" r="3" class="trend-point warning">
+            <title>2026-05-06: 83.3%</title>
+          </circle>
+          <circle cx="166.4" cy="62.6" r="3" class="trend-point normal">
+            <title>2026-05-07: 74.6%</title>
+          </circle>
+          <circle cx="188.5" cy="69.8" r="3" class="trend-point normal">
+            <title>2026-05-08: 69.9%</title>
+          </circle>
+          <circle cx="210.6" cy="41.6" r="3" class="trend-point warning">
+            <title>2026-05-09: 88.4%</title>
+          </circle>
+          <circle cx="232.6" cy="37.4" r="3" class="trend-point critical">
+            <title>2026-05-10: 91.2%</title>
+          </circle>
+          <circle cx="254.7" cy="77.7" r="3" class="trend-point normal">
+            <title>2026-05-11: 64.7%</title>
+          </circle>
+          <circle cx="276.8" cy="88.0" r="3" class="trend-point normal">
+            <title>2026-05-12: 57.9%</title>
+          </circle>
+          <circle cx="298.8" cy="65.0" r="3" class="trend-point normal">
+            <title>2026-05-13: 73.0%</title>
+          </circle>
+          <circle cx="320.9" cy="58.2" r="3" class="trend-point normal">
+            <title>2026-05-14: 77.5%</title>
+          </circle>
+          <circle cx="343.0" cy="52.0" r="3" class="trend-point warning">
+            <title>2026-05-15: 81.6%</title>
+          </circle>
+          <circle cx="365.0" cy="43.9" r="3" class="trend-point warning">
+            <title>2026-05-16: 86.9%</title>
+          </circle>
+          <circle cx="387.1" cy="74.5" r="3" class="trend-point normal">
+            <title>2026-05-17: 66.8%</title>
+          </circle>
+          <circle cx="409.2" cy="85.9" r="3" class="trend-point normal">
+            <title>2026-05-18: 59.3%</title>
+          </circle>
+          <circle cx="431.2" cy="66.4" r="3" class="trend-point normal">
+            <title>2026-05-19: 72.1%</title>
+          </circle>
+          <circle cx="453.3" cy="30.5" r="3" class="trend-point critical">
+            <title>2026-05-20: 95.7%</title>
+          </circle>
+          <circle cx="475.4" cy="40.0" r="3" class="trend-point warning">
+            <title>2026-05-21: 89.5%</title>
+          </circle>
+          <circle cx="497.4" cy="59.9" r="3" class="trend-point normal">
+            <title>2026-05-22: 76.4%</title>
+          </circle>
+          <circle cx="519.5" cy="68.7" r="3" class="trend-point normal">
+            <title>2026-05-23: 70.6%</title>
+          </circle>
+          <circle cx="541.6" cy="48.0" r="3" class="trend-point warning">
+            <title>2026-05-24: 84.2%</title>
+          </circle>
+          <circle cx="563.7" cy="34.9" r="3" class="trend-point critical">
+            <title>2026-05-25: 92.8%</title>
+          </circle>
+          <circle cx="585.7" cy="57.4" r="3" class="trend-point normal">
+            <title>2026-05-26: 78.0%</title>
+          </circle>
+          <circle cx="607.8" cy="73.4" r="3" class="trend-point normal">
+            <title>2026-05-27: 67.5%</title>
+          </circle>
+          <circle cx="629.9" cy="78.9" r="3" class="trend-point normal">
+            <title>2026-05-28: 63.9%</title>
+          </circle>
+          <circle cx="651.9" cy="50.3" r="3" class="trend-point warning">
+            <title>2026-05-29: 82.7%</title>
+          </circle>
+          <circle cx="674.0" cy="43.6" r="3" class="trend-point warning">
+            <title>2026-05-30: 87.1%</title>
+          </circle>
+          <circle cx="453.3" cy="30.5" r="6" class="peak-point" />
+          <text x="407.3" y="20.5" class="data-label">Peak 95.7%</text>
+          <circle cx="674.0" cy="43.6" r="5" class="latest-point" />
+          <text x="602.0" y="65.6" class="data-label">Latest 87.1%</text>
+          <text x="34" y="206" class="axis-label">2026-05-01</text>
+          <text x="596" y="206" class="axis-label">2026-05-30</text>
+        </svg>
+      </div>
+      <div class="analysis-grid">
+        <article class="analysis-card">
+          <span>Trend</span>
+          <strong>Increasing</strong>
+          <p>Recent 7-day average is 79.5% vs previous 7-day average 75.8% (+3.7%).</p>
+        </article>
+        <article class="analysis-card">
+          <span>Peak</span>
+          <strong>95.7%</strong>
+          <p>Highest daily max was on 2026-05-20.</p>
+        </article>
+        <article class="analysis-card">
+          <span>Thresholds</span>
+          <strong>3 critical / 8 warning</strong>
+          <p>Critical is 90% or higher. Warning is 80% to 89.9%.</p>
+        </article>
+        <article class="analysis-card">
+          <span>Latest</span>
+          <strong>87.1%</strong>
+          <p>Latest daily max is warning for 2026-05-30.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="chart" aria-label="CPU usage bar chart">
+      <h2>Last 30 Days Max CPU Usage</h2>
+      <p class="section-subtitle">2026-05-01 to 2026-05-30 (Asia/Kuala_Lumpur)</p>
+        <div class="bar-row">
+          <span class="bar-date">05-01</span>
+          <div class="bar-track">
+            <div class="bar-fill normal" style="width: 62.4%"></div>
+          </div>
+          <span class="bar-value">62.4%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-02</span>
+          <div class="bar-track">
+            <div class="bar-fill normal" style="width: 68.1%"></div>
+          </div>
+          <span class="bar-value">68.1%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-03</span>
+          <div class="bar-track">
+            <div class="bar-fill normal" style="width: 71.5%"></div>
+          </div>
+          <span class="bar-value">71.5%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-04</span>
+          <div class="bar-track">
+            <div class="bar-fill normal" style="width: 55.2%"></div>
+          </div>
+          <span class="bar-value">55.2%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-05</span>
+          <div class="bar-track">
+            <div class="bar-fill normal" style="width: 79.8%"></div>
+          </div>
+          <span class="bar-value">79.8%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-06</span>
+          <div class="bar-track">
+            <div class="bar-fill warning" style="width: 83.3%"></div>
+          </div>
+          <span class="bar-value">83.3%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-07</span>
+          <div class="bar-track">
+            <div class="bar-fill normal" style="width: 74.6%"></div>
+          </div>
+          <span class="bar-value">74.6%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-08</span>
+          <div class="bar-track">
+            <div class="bar-fill normal" style="width: 69.9%"></div>
+          </div>
+          <span class="bar-value">69.9%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-09</span>
+          <div class="bar-track">
+            <div class="bar-fill warning" style="width: 88.4%"></div>
+          </div>
+          <span class="bar-value">88.4%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-10</span>
+          <div class="bar-track">
+            <div class="bar-fill critical" style="width: 91.2%"></div>
+          </div>
+          <span class="bar-value">91.2%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-11</span>
+          <div class="bar-track">
+            <div class="bar-fill normal" style="width: 64.7%"></div>
+          </div>
+          <span class="bar-value">64.7%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-12</span>
+          <div class="bar-track">
+            <div class="bar-fill normal" style="width: 57.9%"></div>
+          </div>
+          <span class="bar-value">57.9%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-13</span>
+          <div class="bar-track">
+            <div class="bar-fill normal" style="width: 73.0%"></div>
+          </div>
+          <span class="bar-value">73.0%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-14</span>
+          <div class="bar-track">
+            <div class="bar-fill normal" style="width: 77.5%"></div>
+          </div>
+          <span class="bar-value">77.5%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-15</span>
+          <div class="bar-track">
+            <div class="bar-fill warning" style="width: 81.6%"></div>
+          </div>
+          <span class="bar-value">81.6%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-16</span>
+          <div class="bar-track">
+            <div class="bar-fill warning" style="width: 86.9%"></div>
+          </div>
+          <span class="bar-value">86.9%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-17</span>
+          <div class="bar-track">
+            <div class="bar-fill normal" style="width: 66.8%"></div>
+          </div>
+          <span class="bar-value">66.8%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-18</span>
+          <div class="bar-track">
+            <div class="bar-fill normal" style="width: 59.3%"></div>
+          </div>
+          <span class="bar-value">59.3%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-19</span>
+          <div class="bar-track">
+            <div class="bar-fill normal" style="width: 72.1%"></div>
+          </div>
+          <span class="bar-value">72.1%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-20</span>
+          <div class="bar-track">
+            <div class="bar-fill critical" style="width: 95.7%"></div>
+          </div>
+          <span class="bar-value">95.7%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-21</span>
+          <div class="bar-track">
+            <div class="bar-fill warning" style="width: 89.5%"></div>
+          </div>
+          <span class="bar-value">89.5%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-22</span>
+          <div class="bar-track">
+            <div class="bar-fill normal" style="width: 76.4%"></div>
+          </div>
+          <span class="bar-value">76.4%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-23</span>
+          <div class="bar-track">
+            <div class="bar-fill normal" style="width: 70.6%"></div>
+          </div>
+          <span class="bar-value">70.6%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-24</span>
+          <div class="bar-track">
+            <div class="bar-fill warning" style="width: 84.2%"></div>
+          </div>
+          <span class="bar-value">84.2%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-25</span>
+          <div class="bar-track">
+            <div class="bar-fill critical" style="width: 92.8%"></div>
+          </div>
+          <span class="bar-value">92.8%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-26</span>
+          <div class="bar-track">
+            <div class="bar-fill normal" style="width: 78.0%"></div>
+          </div>
+          <span class="bar-value">78.0%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-27</span>
+          <div class="bar-track">
+            <div class="bar-fill normal" style="width: 67.5%"></div>
+          </div>
+          <span class="bar-value">67.5%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-28</span>
+          <div class="bar-track">
+            <div class="bar-fill normal" style="width: 63.9%"></div>
+          </div>
+          <span class="bar-value">63.9%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-29</span>
+          <div class="bar-track">
+            <div class="bar-fill warning" style="width: 82.7%"></div>
+          </div>
+          <span class="bar-value">82.7%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-date">05-30</span>
+          <div class="bar-track">
+            <div class="bar-fill warning" style="width: 87.1%"></div>
+          </div>
+          <span class="bar-value">87.1%</span>
+        </div>
+    </section>
+
+    <section class="table-wrap" aria-label="CPU usage table">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Max CPU</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2026-05-01</td>
+            <td>
+              <div class="cpu-cell">
+                <span>62.4%</span>
+                <span class="status normal">Normal</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-02</td>
+            <td>
+              <div class="cpu-cell">
+                <span>68.1%</span>
+                <span class="status normal">Normal</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-03</td>
+            <td>
+              <div class="cpu-cell">
+                <span>71.5%</span>
+                <span class="status normal">Normal</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-04</td>
+            <td>
+              <div class="cpu-cell">
+                <span>55.2%</span>
+                <span class="status normal">Normal</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-05</td>
+            <td>
+              <div class="cpu-cell">
+                <span>79.8%</span>
+                <span class="status normal">Normal</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-06</td>
+            <td>
+              <div class="cpu-cell">
+                <span>83.3%</span>
+                <span class="status warning">Warning</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-07</td>
+            <td>
+              <div class="cpu-cell">
+                <span>74.6%</span>
+                <span class="status normal">Normal</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-08</td>
+            <td>
+              <div class="cpu-cell">
+                <span>69.9%</span>
+                <span class="status normal">Normal</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-09</td>
+            <td>
+              <div class="cpu-cell">
+                <span>88.4%</span>
+                <span class="status warning">Warning</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-10</td>
+            <td>
+              <div class="cpu-cell">
+                <span>91.2%</span>
+                <span class="status critical">Critical</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-11</td>
+            <td>
+              <div class="cpu-cell">
+                <span>64.7%</span>
+                <span class="status normal">Normal</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-12</td>
+            <td>
+              <div class="cpu-cell">
+                <span>57.9%</span>
+                <span class="status normal">Normal</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-13</td>
+            <td>
+              <div class="cpu-cell">
+                <span>73.0%</span>
+                <span class="status normal">Normal</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-14</td>
+            <td>
+              <div class="cpu-cell">
+                <span>77.5%</span>
+                <span class="status normal">Normal</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-15</td>
+            <td>
+              <div class="cpu-cell">
+                <span>81.6%</span>
+                <span class="status warning">Warning</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-16</td>
+            <td>
+              <div class="cpu-cell">
+                <span>86.9%</span>
+                <span class="status warning">Warning</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-17</td>
+            <td>
+              <div class="cpu-cell">
+                <span>66.8%</span>
+                <span class="status normal">Normal</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-18</td>
+            <td>
+              <div class="cpu-cell">
+                <span>59.3%</span>
+                <span class="status normal">Normal</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-19</td>
+            <td>
+              <div class="cpu-cell">
+                <span>72.1%</span>
+                <span class="status normal">Normal</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-20</td>
+            <td>
+              <div class="cpu-cell">
+                <span>95.7%</span>
+                <span class="status critical">Critical</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-21</td>
+            <td>
+              <div class="cpu-cell">
+                <span>89.5%</span>
+                <span class="status warning">Warning</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-22</td>
+            <td>
+              <div class="cpu-cell">
+                <span>76.4%</span>
+                <span class="status normal">Normal</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-23</td>
+            <td>
+              <div class="cpu-cell">
+                <span>70.6%</span>
+                <span class="status normal">Normal</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-24</td>
+            <td>
+              <div class="cpu-cell">
+                <span>84.2%</span>
+                <span class="status warning">Warning</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-25</td>
+            <td>
+              <div class="cpu-cell">
+                <span>92.8%</span>
+                <span class="status critical">Critical</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-26</td>
+            <td>
+              <div class="cpu-cell">
+                <span>78.0%</span>
+                <span class="status normal">Normal</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-27</td>
+            <td>
+              <div class="cpu-cell">
+                <span>67.5%</span>
+                <span class="status normal">Normal</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-28</td>
+            <td>
+              <div class="cpu-cell">
+                <span>63.9%</span>
+                <span class="status normal">Normal</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-29</td>
+            <td>
+              <div class="cpu-cell">
+                <span>82.7%</span>
+                <span class="status warning">Warning</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>2026-05-30</td>
+            <td>
+              <div class="cpu-cell">
+                <span>87.1%</span>
+                <span class="status warning">Warning</span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="note">Generated on 2026-05-30 (Asia/Kuala_Lumpur) from <code>data/history.json</code>.</div>
+  </main>
+
+  <footer class="wrap">
+    Mobile-friendly CPU report published from GitHub using a Python-generated HTML file.
+  </footer>
+</body>
+</html>

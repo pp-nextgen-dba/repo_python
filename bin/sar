@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+from datetime import datetime
+import argparse
+import re
+import subprocess
+import time
+
+
+CPU_PATTERN = re.compile(
+    r"CPU usage:\s+([\d.]+)% user,\s+([\d.]+)% sys,\s+([\d.]+)% idle"
+)
+
+
+def read_cpu_usage() -> tuple[float, float, float]:
+    completed = subprocess.run(
+        ["top", "-l", "1", "-n", "0"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    match = CPU_PATTERN.search(completed.stdout)
+    if not match:
+        raise RuntimeError("Unable to parse CPU usage from top output")
+
+    user = float(match.group(1))
+    system = float(match.group(2))
+    idle = float(match.group(3))
+    return user, system, idle
+
+
+def print_cpu_sample() -> None:
+    user, system, idle = read_cpu_usage()
+    now = datetime.now().strftime("%I:%M:%S %p")
+    print(f"{now:>11}     all {user:9.2f}      0.00 {system:9.2f}      0.00      0.00 {idle:9.2f}")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Minimal macOS sar -u compatible shim")
+    parser.add_argument("-u", action="store_true", help="Show CPU usage")
+    parser.add_argument("interval", type=int, nargs="?", default=2)
+    parser.add_argument("count", type=int, nargs="?", default=10)
+    args = parser.parse_args()
+
+    if not args.u:
+        parser.error("Only sar -u is supported by this macOS shim")
+
+    print(f"Darwin macOS (local) \t{datetime.now().strftime('%m/%d/%Y')}")
+    print()
+    print("        Time     CPU     %user     %nice   %system   %iowait    %steal     %idle")
+
+    for index in range(args.count):
+        if index:
+            time.sleep(args.interval)
+        print_cpu_sample()
+
+
+if __name__ == "__main__":
+    main()
